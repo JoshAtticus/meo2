@@ -33,6 +33,7 @@
     <link rel="stylesheet" href="scheme.css">
     <link rel="stylesheet" href="glass.css">
     <link rel="stylesheet" href="tooltips.css">
+    <link rel="stylesheet" href="pwa.css">
     <style>
       html {
         background-color: #1f1d29;
@@ -137,23 +138,12 @@
         }
       });
     </script>
-    <script src="https://cdn.jsdelivr.net/gh/JoshAtticus/leo@main/plugins.js" type="text/javascript"></script>
+    <script src="plugins.js" type="text/javascript"></script>
     <script src="markdown.js" type="text/javascript"></script>
     <script src="script.js" type="text/javascript"></script>
     <script src="defaultemoji.js" type="text/javascript"></script>
     <script src="emoji.js" type="text/javascript"></script>
-    <script type="text/javascript">
-      window.addEventListener("beforeinstallprompt", function (e) {
-        e.userChoice.then(function (choiceResult) {
-          console.log(choiceResult.outcome);
-          if (choiceResult.outcome == "dismissed") {
-            console.log("User cancelled home screen install");
-          } else {
-            console.log("User added to home screen");
-          }
-        });
-      });
-    </script>
+    <script src="pwa.js" type="text/javascript"></script>
     <script type="text/javascript">
       var element = new Image;
       var devtoolsOpen = false;

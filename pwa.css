@@ -1,0 +1,46 @@
+/* Installed app with the window bar collapsed into an overlay (ChromeOS,
+   desktop Chrome): keep a slim draggable strip where the title bar was and
+   lay meo out below the window buttons. */
+.wco .titlebar,
+.wco .titlebar-back {
+    display: flex;
+    position: fixed;
+    top: env(titlebar-area-y, 0);
+    height: env(titlebar-area-height, 33px);
+    background: var(--background);
+    -webkit-user-select: none;
+    user-select: none;
+}
+.wco .titlebar {
+    left: env(titlebar-area-x, 0);
+    width: env(titlebar-area-width, 100%);
+    align-items: center;
+    z-index: 500;
+    -webkit-app-region: drag;
+    app-region: drag;
+}
+.wco .titlebar-back {
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+.wco .titlebar-buttons {
+    display: none;
+}
+.wco .titlebar-name {
+    margin-left: 12px;
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 0.8;
+}
+.wco #main,
+.wco .side,
+.wco .launch {
+    height: calc(100vh - env(titlebar-area-height, 33px));
+}
+.wco #page {
+    padding-top: env(titlebar-area-height, 33px);
+}
+.wco .side {
+    top: env(titlebar-area-height, 33px);
+}

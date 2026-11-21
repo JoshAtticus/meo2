@@ -3571,6 +3571,7 @@ function loadAppearance() {
                 <button onclick='changeTheme(\"light\", this)' class='theme-button light-theme'>Light</button>
                 <button onclick='changeTheme(\"dark\", this)' class='theme-button dark-theme'>Dark</button>
                 <button onclick='changeTheme(\"oled\", this)' class='theme-button oled-theme'>Black</button>
+                <button onclick='changeTheme(\"darker\", this)' class='theme-button darker-theme'>Darker</button>
             </div>
             <h3>${lang().appearance_sub.spthemes}</h3>
                 <div class="theme-buttons-inner">
@@ -3588,7 +3589,10 @@ function loadAppearance() {
                     <button onclick='changeTheme(\"flamingo\", this)' class='theme-button flamingo-theme'>Flamingo</button>
                     <button onclick='changeTheme(\"teb\", this)' class='theme-button teb-theme'>Blue</button>
                     <button onclick='changeTheme(\"fabloo\", this)' class='theme-button fabloo-theme'>Fabloo</button>
-                    <button onclick='changeTheme(\"midnight-blurple\", this)' class='theme-button midnight-blurple-theme'>Blurple</button>
+                    <button onclick='changeTheme(\"midnight-blurple\", this)' class='theme-button midnight-blurple-theme'>Midnight Blurple</button>
+                                    <button onclick='changeTheme(\"blurple\", this)' class='theme-button blurple-theme'>Blurple</button>
+                    <button onclick='changeTheme(\"softblue\", this)' class='theme-button softblue-theme'>Soft Blue</button>
+                    <button onclick='changeTheme(\"scratch\", this)' class='theme-button scratch-theme'>Scratch</button>
                     </div>
                 </div>
             <h3>${lang().appearance_sub.acthemes}</h3>
@@ -3599,6 +3603,8 @@ function loadAppearance() {
                 <div class="theme-buttons-inner">
                     <button onclick='changeTheme(\"oldlight\", this)' class='theme-button oldlight-theme'>Old Light</button>
                     <button onclick='changeTheme(\"old\", this)' class='theme-button old-theme'>Old Dark</button>
+                    <button onclick='changeTheme(\"olderlight\", this)' class='theme-button olderlight-theme'>Older Light</button>
+                    <button onclick='changeTheme(\"older\", this)' class='theme-button older-theme'>Older Dark</button>
                 </div>
             <h3 style="display:none;">${lang().appearance_sub.glthemes}</h3>
                 <div class="theme-buttons-inner" style="display:none;">
@@ -3743,7 +3749,8 @@ function loadAppearance() {
 
     const themeButtons = document.querySelectorAll('.theme-button');
     themeButtons.forEach((btn) => btn.classList.remove('selected'));
-    document.querySelector('.theme-buttons .' + localStorage.getItem('theme') + '-theme').classList.add('selected');
+    // no saved theme yet means the default dark theme
+    document.querySelector('.theme-buttons .' + (localStorage.getItem('theme') || 'dark') + '-theme')?.classList.add('selected');
 }
 
 function applyCustomTheme() {

@@ -1,11 +1,11 @@
 {
   "name": "meo",
   "short_name": "meo",
-  "start_url": "/meo",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#1c1c26",
   "lang": "en",
-  "scope": "/meo",
+  "scope": "./",
   "description": "Neo + Meower",
   "categories": [
     "communication",
@@ -46,8 +46,7 @@
     "preferred_width": 400
   },
   "display_override": [
-    "standalone",
     "window-controls-overlay",
-    "borderless"
+    "standalone"
   ]
 }
