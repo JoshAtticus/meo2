@@ -11,3 +11,4 @@ Visit https://eris.pages.dev/meo/about for more info!
 - Plugins.js library for easier plugin interactions (bundled, no CDN)
 - Added back all 6 hidden themes: Darker, Blurple, Soft Blue, Scratch, Older Light and Older Dark
 - Configurable server addresses (`config.js`; override with `meo_serverurl`, `meo_apiurl` and `meo_uploadsurl` in localStorage)
+- Works with the newer server features (meo2.js): reactions, stickers, pins, message requests, group chat invites, friends, full role management with role colours, bans, chat purposes, data export and My Reports

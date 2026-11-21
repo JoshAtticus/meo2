@@ -209,6 +209,7 @@ function main() {
         console.log("INC: " + event.data);
 
         const sentdata = JSON.parse(event.data);
+        if (typeof meo2Handle === "function") meo2Handle(sentdata);
         if (sentdata.listener === "auth") {
             if (sentdata.cmd === "auth") {
                 sentdata.val.relationships.forEach((relationship) => {
@@ -256,11 +257,12 @@ function main() {
         } else if (sentdata.cmd === "post" || sentdata.cmd === "inbox_message") {
             let post = sentdata.val;
             let postOrigin = post.post_origin;
-            let postAuthor = post.author._id
+            // server-generated posts have no author object
+            let postAuthor = post.author ? post.author._id : post.u;
 
-            if (usersTyping[postOrigin] && post.author._id in usersTyping[postOrigin]) {
-                clearTimeout(usersTyping[postOrigin][post.author._id]);
-                delete usersTyping[postOrigin][post.author._id];
+            if (usersTyping[postOrigin] && postAuthor in usersTyping[postOrigin]) {
+                clearTimeout(usersTyping[postOrigin][postAuthor]);
+                delete usersTyping[postOrigin][postAuthor];
                 
                 renderTyping();
             }
