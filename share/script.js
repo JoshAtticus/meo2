@@ -8,7 +8,7 @@ async function loadsharedpost() {
         return;
     }
 
-    const api = `https://api.meower.org/posts?id=${id}`;
+    const api = `${API_URL}/posts?id=${id}`;
     console.debug(api);
     try {
         const response = await fetch(api, { headers: { token: localStorage.getItem("token") } });
@@ -145,12 +145,12 @@ function loadpost(p) {
 
 function loadPfp(username) {
     return new Promise((resolve, reject) => {
-        fetch(`https://api.meower.org/users/${username}`)
+        fetch(`${API_URL}/users/${username}`)
             .then(userResp => userResp.json())
             .then(userData => {
                 let pfpElement;
                 if (userData.avatar) {
-                    const pfpurl = `https://uploads.meower.org/icons/${userData.avatar}`;
+                    const pfpurl = `${UPLOADS_URL}/icons/${userData.avatar}`;
                     pfpElement = document.createElement("img");
                     pfpElement.setAttribute("src", pfpurl);
                     pfpElement.setAttribute("alt", username);
@@ -190,7 +190,7 @@ async function loadreply(postOrigin, replyid) {
     const betterMeowerRegex = /@([\w-]+)\[([a-zA-Z0-9]+)\]/g;
 
     try {
-        const replyresp = await fetch(`https://api.meower.org/posts?id=${replyid}`);
+        const replyresp = await fetch(`${API_URL}/posts?id=${replyid}`);
         let replydata;
         if (replyresp.status === 404) {
             replydata = { p: "[original message was deleted]" };

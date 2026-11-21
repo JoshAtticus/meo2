@@ -35,7 +35,7 @@ let ipBlocked = false;
 let openprofile = false;
 
 const communityDiscordLink = "https://discord.com/invite/THgK9CgyYJ";
-const server = "wss://server.meower.org/?v=1";
+const server = (SERVER_URL);
 
 const pfpCache = {};
 const postCache = { livechat: [] };  // {chatId: [post, post, ...]} (up to 25 posts for inactive chats)
@@ -495,7 +495,7 @@ function main() {
                 textarea.blur();
             } else if (event.keyCode >= 48 && event.keyCode <= 90 && textarea === document.activeElement && !settingsstuff().invtyping && lastTyped+3000 < Date.now()) {
                 lastTyped = Date.now();
-                fetch(`https://api.meower.org/${page === "home" ? "" : "chats/"}${page}/typing`, {
+                fetch(`${API_URL}/${page === "home" ? "" : "chats/"}${page}/typing`, {
                     method: "POST",
                     headers: { token: localStorage.getItem("token") }
                 });
@@ -884,7 +884,7 @@ function loadPfp(username, userData, button) {
 
             if (!userData) {
                 try {
-                    const resp = await fetch(`https://api.meower.org/users/${username}`);
+                    const resp = await fetch(`${API_URL}/users/${username}`);
                     userData = await resp.json();
                 } catch (error) {
                     console.error("Failed to fetch:", error);
@@ -893,7 +893,7 @@ function loadPfp(username, userData, button) {
             }
             
             if (userData.avatar) {
-                const pfpurl = `https://uploads.meower.org/icons/${userData.avatar}`;
+                const pfpurl = `${UPLOADS_URL}/icons/${userData.avatar}`;
 
                 
                 pfpElement = document.createElement("div");
@@ -983,7 +983,7 @@ async function loadreply(postOrigin, replyid) {
     try {
         let replydata = postCache[postOrigin].find(post => post._id === replyid);
         if (!replydata) {
-            const replyresp = await fetch(`https://api.meower.org/posts?id=${replyid}`, {
+            const replyresp = await fetch(`${API_URL}/posts?id=${replyid}`, {
                 headers: { token: localStorage.getItem("token") }
             });
             if (replyresp.status === 404) {
@@ -1272,7 +1272,7 @@ function login() {
         }
     }
 
-    fetch("https://api.meower.org/auth/login", {
+    fetch((API_URL + "/auth/login"), {
         method: "POST",
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
@@ -1324,7 +1324,7 @@ function login() {
 }
 
 function signup(username, password, captcha) {
-    fetch("https://api.meower.org/auth/register", {
+    fetch((API_URL + "/auth/register"), {
         method: "POST",
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
@@ -1384,7 +1384,7 @@ async function sendpost() {
         if (repst) {
             const newCont = repst.p.replace(new RegExp(old, 'g'), newtx);
 
-            fetch(`https://api.meower.org/posts?id=${repst._id}`, {
+            fetch(`${API_URL}/posts?id=${repst._id}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
@@ -1398,7 +1398,7 @@ async function sendpost() {
     }
 
     if (editIndicator.hasAttribute("data-postid")) {
-        fetch(`https://api.meower.org/posts?id=${editIndicator.getAttribute("data-postid")}`, {
+        fetch(`${API_URL}/posts?id=${editIndicator.getAttribute("data-postid")}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -1455,7 +1455,7 @@ async function sendpost() {
             });
         document.getElementById("msgs").prepend(placeholder);
 
-        const response = await fetch(`https://api.meower.org/${page === "home" ? "home" : `posts/${page}`}`, {
+        const response = await fetch(`${API_URL}/${page === "home" ? "home" : `posts/${page}`}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -1595,7 +1595,7 @@ function renderChats() {
         chatIconElem.setAttribute("alt", "Avatar");
         if (chat.type === 0) {
             if (chat.icon) {
-                chatIconElem.style.backgroundImage = `url(https://uploads.meower.org/icons/${chat.icon})`;
+                chatIconElem.style.backgroundImage = `url(${UPLOADS_URL}/icons/${chat.icon})`;
             } else {
                 chatIconElem.style.backgroundImage = `url(images/GC.svg)`;
             }
@@ -1728,7 +1728,7 @@ function loadstart() {
         <button class="qbtn button" aria-label="dm me" onclick="opendm('Eris')">${lang().action.dmme}</button>
     </div>
     `;
-    fetch('https://api.meower.org/ulist?autoget')
+    fetch((API_URL + '/ulist?autoget'))
     .then(response => response.json())
     .then(data => {
         let pl = ''
@@ -1742,7 +1742,7 @@ function loadstart() {
                 }
                 if (item.avatar) {
                     profilecont.innerHTML = `
-                        <div class="avatar-small pfp-inner" style="border: 3px solid #${item.avatar_color}; background-color:#${item.avatar_color}; background-image: url(https://uploads.meower.org/icons/${item.avatar});" alt="Avatar" title="${item._id}"></div>
+                        <div class="avatar-small pfp-inner" style="border: 3px solid #${item.avatar_color}; background-color:#${item.avatar_color}; background-image: url(${UPLOADS_URL}/icons/${item.avatar});" alt="Avatar" title="${item._id}"></div>
                     `;
                 } else if (item.pfp_data) {
                     profilecont.innerHTML = `
@@ -1770,7 +1770,7 @@ function opendm(username) {
         }
     }
 
-    fetch(`https://api.meower.org/users/${username}/dm`, {
+    fetch(`${API_URL}/users/${username}/dm`, {
         method: 'GET',
         headers: {
             'token': localStorage.getItem("token")
@@ -1796,7 +1796,7 @@ function loadchat(chatId) {
     page = chatId;
     pre = chatId;
     if (!["home", "inbox", "livechat"].includes(chatId) && !chatCache[chatId]) {
-        fetch(`https://api.meower.org/chats/${chatId}`, {
+        fetch(`${API_URL}/chats/${chatId}`, {
             headers: {token: localStorage.getItem("token")}
         })
         .then(response => {
@@ -1858,7 +1858,7 @@ function loadchat(chatId) {
             
             let url
             if (data.icon) {
-                url = `url(https://uploads.meower.org/icons/${data.icon})`;
+                url = `url(${UPLOADS_URL}/icons/${data.icon})`;
             } else {
                 url = `url(images/GC.svg)`;
             }
@@ -1972,7 +1972,7 @@ async function loadposts(pageNo) {
     else path = `/posts/${chatId}`;
 
     // Get posts from API
-    const response = await fetch(`https://api.meower.org${path}?page=${pageNo}`, {
+    const response = await fetch(`${API_URL}${path}?page=${pageNo}`, {
         headers: {
             token: localStorage.getItem("token")
         }
@@ -2006,7 +2006,7 @@ function loadrecent(user) {
     pre = "recent";
     recentuser = user;
     if (!recentCache[recentuser]) {
-        fetch(`https://api.meower.org/users/${recentuser}/posts`, {
+        fetch(`${API_URL}/users/${recentuser}/posts`, {
             headers: {token: localStorage.getItem("token")}
         })
         .then(response => {
@@ -2083,7 +2083,7 @@ async function loadrecentposts(pageNo) {
     var path = `/users/${recentuser}/posts`;
 
     // Get posts from API
-    const response = await fetch(`https://api.meower.org${path}?page=${pageNo}`, {
+    const response = await fetch(`${API_URL}${path}?page=${pageNo}`, {
         headers: {
             token: localStorage.getItem("token")
         }
@@ -2348,7 +2348,7 @@ function loadAccount() {
 }
 
 async function loadAuthenticators() {
-    const mfaAuthenticators = (await(await fetch("https://api.meower.org/me/authenticators", {
+    const mfaAuthenticators = (await(await fetch((API_URL + "/me/authenticators"), {
         headers: { token: localStorage.getItem("token") },
     })).json()).autoget;
 
@@ -2399,7 +2399,7 @@ async function addTotpModal(totpSecret) {
     addTotpBtn.disabled = true;
 
     if (!totpSecret) {
-        totpSecret = await(await fetch("https://api.meower.org/me/authenticators/totp-secret", {
+        totpSecret = await(await fetch((API_URL + "/me/authenticators/totp-secret"), {
             headers: { token: localStorage.getItem("token") },
         })).json();
     }
@@ -2455,7 +2455,7 @@ async function addTotp(secret) {
             throw new Error(lang().info.nocode);
         }
 
-        const resp = await fetch("https://api.meower.org/me/authenticators", {
+        const resp = await fetch((API_URL + "/me/authenticators"), {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -2543,7 +2543,7 @@ async function editAuthenticator(authenticatorId) {
     const nickname = document.getElementById("nickname-input").value;
 
     try {
-        const resp = await fetch(`https://api.meower.org/me/authenticators/${authenticatorId}`, {
+        const resp = await fetch(`${API_URL}/me/authenticators/${authenticatorId}`, {
             method: "PATCH",
             headers: {
                 'Content-Type': 'application/json',
@@ -2604,7 +2604,7 @@ async function removeAuthenticator(authenticatorId) {
             throw new Error(lang().info.nopass);
         }
 
-        const resp = await fetch(`https://api.meower.org/me/authenticators/${authenticatorId}`, {
+        const resp = await fetch(`${API_URL}/me/authenticators/${authenticatorId}`, {
             method: "DELETE",
             headers: {
                 'Content-Type': 'application/json',
@@ -2669,7 +2669,7 @@ async function resetRecoveryCode() {
             throw new Error(lang().info.nopass);
         }
 
-        const resp = await fetch(`https://api.meower.org/me/reset-mfa-recovery-code`, {
+        const resp = await fetch(`${API_URL}/me/reset-mfa-recovery-code`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -2791,7 +2791,7 @@ function loadProfile() {
         </div>
     `;
 
-    fetch(`https://api.meower.org/users/${username}`)
+    fetch(`${API_URL}/users/${username}`)
     .then(response => {
         if (!response.ok) {
             throw new Error('User not found');
@@ -2821,7 +2821,7 @@ function loadProfile() {
 
         if (data.avatar) {
             profilecont.innerHTML = `
-            <div class="avatar-big pfp-inner" style="border: 6px solid #${data.avatar_color}; background-color:#${data.avatar_color}; background-image: url(https://uploads.meower.org/icons/${data.avatar});"></div>
+            <div class="avatar-big pfp-inner" style="border: 6px solid #${data.avatar_color}; background-color:#${data.avatar_color}; background-image: url(${UPLOADS_URL}/icons/${data.avatar});"></div>
             `
         } else if (data.pfp_data) {                    
             profilecont.innerHTML = `
@@ -2900,7 +2900,7 @@ function chatSettings(chatId) {
 	setTop();
 
 	if (!chatCache[chatId]) {
-		fetch(`https://api.meower.org/chats/${chatId}`, {
+		fetch(`${API_URL}/chats/${chatId}`, {
 				headers: {
 					token: localStorage.getItem("token")
 				}
@@ -2932,7 +2932,7 @@ function chatSettings(chatId) {
 
 	let url
 	if (data.icon) {
-		url = `url(https://uploads.meower.org/icons/${data.icon})`;
+		url = `url(${UPLOADS_URL}/icons/${data.icon})`;
 	} else {
 		url = `url(images/GC.svg)`;
 	}
@@ -3000,7 +3000,7 @@ function chatSettings(chatId) {
 			emojiItem.className = 'member-in';
 			emojiItem.innerHTML = `
                         <div class="emoji-option-in">
-                        <img class="emoji-option-im" src="https://uploads.meower.org/emojis/${emoji._id}" alt="${escapeHTML(emoji.name)}" />
+                        <img class="emoji-option-im" src="${UPLOADS_URL}/emojis/${emoji._id}" alt="${escapeHTML(emoji.name)}" />
                         <span>${escapeHTML(emoji.name)}</span>
                         </div>
                         ${data.owner === localStorage.getItem("username") ? `
@@ -3026,7 +3026,7 @@ function chatMembers(chatId) {
 	setTop();
 
 	if (!chatCache[chatId]) {
-		fetch(`https://api.meower.org/chats/${chatId}`, {
+		fetch(`${API_URL}/chats/${chatId}`, {
 				headers: {
 					token: localStorage.getItem("token")
 				}
@@ -3058,7 +3058,7 @@ function chatMembers(chatId) {
 
 	let url
 	if (data.icon) {
-		url = `url(https://uploads.meower.org/icons/${data.icon})`;
+		url = `url(${UPLOADS_URL}/icons/${data.icon})`;
 	} else {
 		url = `url(images/GC.svg)`;
 	}
@@ -3155,7 +3155,7 @@ function saveChat(chatId) {
         }
     };
 
-    xhttp.open("PATCH", `https://api.meower.org/chats/${chatId}`);
+    xhttp.open("PATCH", `${API_URL}/chats/${chatId}`);
 
     xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhttp.setRequestHeader("token", token);
@@ -3168,7 +3168,7 @@ function saveChat(chatId) {
         const formData = new FormData();
         formData.append("file", file);
 
-        fetch("https://uploads.meower.org/icons", {
+        fetch((UPLOADS_URL + "/icons"), {
             method: "POST",
             headers: {
                 "Authorization": token
@@ -3227,7 +3227,7 @@ function saveProfile() {
         }
     };
 
-    xhttp.open("PATCH", "https://api.meower.org/me/config");
+    xhttp.open("PATCH", (API_URL + "/me/config"));
 
     xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhttp.setRequestHeader("token", token);
@@ -3240,7 +3240,7 @@ function saveProfile() {
     if (file) {
         const formData = new FormData();
         formData.append("file", file);
-            fetch("https://uploads.meower.org/icons", {
+            fetch((UPLOADS_URL + "/icons"), {
                 method: "POST",
                 headers: {
                     "Authorization": token
@@ -3479,7 +3479,7 @@ function loadAppearance() {
     let settingsContent = `
         <h1>${lang().settings_appearance}</h1>
         <div class="msgs example-msg">
-        <div id="example" class="post" style="margin-top: -2.8em;"><div class="pfp"><img src="https://uploads.meower.org/icons/o1KPbrqDXKV6BeqmbwLvZurG" alt="Avatar" class="avatar" style="border: 3px solid #ad3e00;"></div><div class="wrapper"><div class="buttonContainer">
+        <div id="example" class="post" style="margin-top: -2.8em;"><div class="pfp"><img src="${UPLOADS_URL}/icons/o1KPbrqDXKV6BeqmbwLvZurG" alt="Avatar" class="avatar" style="border: 3px solid #ad3e00;"></div><div class="wrapper"><div class="buttonContainer">
                     <div class="toolbarContainer">
                         <div class="toolButton">
                             <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path d="M12.9297 3.25007C12.7343 3.05261 12.4154 3.05226 12.2196 3.24928L11.5746 3.89824C11.3811 4.09297 11.3808 4.40733 11.5739 4.60245L16.5685 9.64824C16.7614 9.84309 16.7614 10.1569 16.5685 10.3517L11.5739 15.3975C11.3808 15.5927 11.3811 15.907 11.5746 16.1017L12.2196 16.7507C12.4154 16.9477 12.7343 16.9474 12.9297 16.7499L19.2604 10.3517C19.4532 10.1568 19.4532 9.84314 19.2604 9.64832L12.9297 3.25007Z"></path><path d="M8.42616 4.60245C8.6193 4.40733 8.61898 4.09297 8.42545 3.89824L7.78047 3.24928C7.58466 3.05226 7.26578 3.05261 7.07041 3.25007L0.739669 9.64832C0.5469 9.84314 0.546901 10.1568 0.739669 10.3517L7.07041 16.7499C7.26578 16.9474 7.58465 16.9477 7.78047 16.7507L8.42545 16.1017C8.61898 15.907 8.6193 15.5927 8.42616 15.3975L3.43155 10.3517C3.23869 10.1569 3.23869 9.84309 3.43155 9.64824L8.42616 4.60245Z"></path></svg>
@@ -3500,7 +3500,7 @@ function loadAppearance() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M4 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm10-2a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm8 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" clip-rule="evenodd" class=""></path></svg>
                         </div>
                     </div>
-                    </div><span class="user-header"><span id="username">melt</span><bridge title="${lang().meo_bridged.title}">${lang().meo_bridged.start}</bridge><i class="date">04/06/24, 11:49 pm</i></span><p>pal was so eepy she couldn't even finish speaking!! 😹</p></div></div><div id="example" class="post"><div class="pfp"><img src="https://uploads.meower.org/icons/Gi1WvwNobL0X6RpZB7pnAMNw" alt="Avatar" class="avatar" style="border: 3px solid #b190fe;"></div><div class="wrapper"><div class="buttonContainer">
+                    </div><span class="user-header"><span id="username">melt</span><bridge title="${lang().meo_bridged.title}">${lang().meo_bridged.start}</bridge><i class="date">04/06/24, 11:49 pm</i></span><p>pal was so eepy she couldn't even finish speaking!! 😹</p></div></div><div id="example" class="post"><div class="pfp"><img src="${UPLOADS_URL}/icons/Gi1WvwNobL0X6RpZB7pnAMNw" alt="Avatar" class="avatar" style="border: 3px solid #b190fe;"></div><div class="wrapper"><div class="buttonContainer">
                     <div class="toolbarContainer">
                         <div class="toolButton">
                             <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path d="M12.9297 3.25007C12.7343 3.05261 12.4154 3.05226 12.2196 3.24928L11.5746 3.89824C11.3811 4.09297 11.3808 4.40733 11.5739 4.60245L16.5685 9.64824C16.7614 9.84309 16.7614 10.1569 16.5685 10.3517L11.5739 15.3975C11.3808 15.5927 11.3811 15.907 11.5746 16.1017L12.2196 16.7507C12.4154 16.9477 12.7343 16.9474 12.9297 16.7499L19.2604 10.3517C19.4532 10.1568 19.4532 9.84314 19.2604 9.64832L12.9297 3.25007Z"></path><path d="M8.42616 4.60245C8.6193 4.40733 8.61898 4.09297 8.42545 3.89824L7.78047 3.24928C7.58466 3.05226 7.26578 3.05261 7.07041 3.25007L0.739669 9.64832C0.5469 9.84314 0.546901 10.1568 0.739669 10.3517L7.07041 16.7499C7.26578 16.9474 7.58465 16.9477 7.78047 16.7507L8.42545 16.1017C8.61898 15.907 8.6193 15.5927 8.42616 15.3975L3.43155 10.3517C3.23869 10.1569 3.23869 9.84309 3.43155 9.64824L8.42616 4.60245Z"></path></svg>
@@ -3521,7 +3521,7 @@ function loadAppearance() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M4 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm10-2a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm8 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" clip-rule="evenodd" class=""></path></svg>
                         </div>
                     </div>
-                    </div><span class="user-header"><span id="username">Eris</span><i class="date">04/06/24, 11:12 pm</i></span><p>get ready for this</p></div></div><div id="example" class="post"><div class="pfp"><img src="https://uploads.meower.org/icons/Gi1WvwNobL0X6RpZB7pnAMNw" alt="Avatar" class="avatar" style="border: 3px solid #b190fe;"></div><div class="wrapper"><div class="buttonContainer">
+                    </div><span class="user-header"><span id="username">Eris</span><i class="date">04/06/24, 11:12 pm</i></span><p>get ready for this</p></div></div><div id="example" class="post"><div class="pfp"><img src="${UPLOADS_URL}/icons/Gi1WvwNobL0X6RpZB7pnAMNw" alt="Avatar" class="avatar" style="border: 3px solid #b190fe;"></div><div class="wrapper"><div class="buttonContainer">
                     <div class="toolbarContainer">
                         <div class="toolButton">
                             <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path d="M12.9297 3.25007C12.7343 3.05261 12.4154 3.05226 12.2196 3.24928L11.5746 3.89824C11.3811 4.09297 11.3808 4.40733 11.5739 4.60245L16.5685 9.64824C16.7614 9.84309 16.7614 10.1569 16.5685 10.3517L11.5739 15.3975C11.3808 15.5927 11.3811 15.907 11.5746 16.1017L12.2196 16.7507C12.4154 16.9477 12.7343 16.9474 12.9297 16.7499L19.2604 10.3517C19.4532 10.1568 19.4532 9.84314 19.2604 9.64832L12.9297 3.25007Z"></path><path d="M8.42616 4.60245C8.6193 4.40733 8.61898 4.09297 8.42545 3.89824L7.78047 3.24928C7.58466 3.05226 7.26578 3.05261 7.07041 3.25007L0.739669 9.64832C0.5469 9.84314 0.546901 10.1568 0.739669 10.3517L7.07041 16.7499C7.26578 16.9474 7.58465 16.9477 7.78047 16.7507L8.42545 16.1017C8.61898 15.907 8.6193 15.5927 8.42616 15.3975L3.43155 10.3517C3.23869 10.1569 3.23869 9.84309 3.43155 9.64824L8.42616 4.60245Z"></path></svg>
@@ -3542,7 +3542,7 @@ function loadAppearance() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M4 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm10-2a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm8 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" clip-rule="evenodd" class=""></path></svg>
                         </div>
                     </div>
-                    </div><span class="user-header"><span id="username">Eris</span><i class="date">04/06/24, 11:12 pm</i></span><p>so ur scared of helpful advice</p></div></div><div id="example" class="post"><div class="pfp"><img src="https://uploads.meower.org/icons/Gi1WvwNobL0X6RpZB7pnAMNw" alt="Avatar" class="avatar" style="border: 3px solid #b190fe;"></div><div class="wrapper"><div class="buttonContainer">
+                    </div><span class="user-header"><span id="username">Eris</span><i class="date">04/06/24, 11:12 pm</i></span><p>so ur scared of helpful advice</p></div></div><div id="example" class="post"><div class="pfp"><img src="${UPLOADS_URL}/icons/Gi1WvwNobL0X6RpZB7pnAMNw" alt="Avatar" class="avatar" style="border: 3px solid #b190fe;"></div><div class="wrapper"><div class="buttonContainer">
                     <div class="toolbarContainer">
                         <div class="toolButton">
                             <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path d="M12.9297 3.25007C12.7343 3.05261 12.4154 3.05226 12.2196 3.24928L11.5746 3.89824C11.3811 4.09297 11.3808 4.40733 11.5739 4.60245L16.5685 9.64824C16.7614 9.84309 16.7614 10.1569 16.5685 10.3517L11.5739 15.3975C11.3808 15.5927 11.3811 15.907 11.5746 16.1017L12.2196 16.7507C12.4154 16.9477 12.7343 16.9474 12.9297 16.7499L19.2604 10.3517C19.4532 10.1568 19.4532 9.84314 19.2604 9.64832L12.9297 3.25007Z"></path><path d="M8.42616 4.60245C8.6193 4.40733 8.61898 4.09297 8.42545 3.89824L7.78047 3.24928C7.58466 3.05226 7.26578 3.05261 7.07041 3.25007L0.739669 9.64832C0.5469 9.84314 0.546901 10.1568 0.739669 10.3517L7.07041 16.7499C7.26578 16.9474 7.58465 16.9477 7.78047 16.7507L8.42545 16.1017C8.61898 15.907 8.6193 15.5927 8.42616 15.3975L3.43155 10.3517C3.23869 10.1569 3.23869 9.84309 3.43155 9.64824L8.42616 4.60245Z"></path></svg>
@@ -3563,7 +3563,7 @@ function loadAppearance() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M4 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm10-2a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm8 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" clip-rule="evenodd" class=""></path></svg>
                         </div>
                     </div>
-                    </div><span class="user-header"><span id="username">Eris</span><i class="date">04/04/24, 10:49 pm</i></span><p><a href="https://uploads.meower.org/attachments/oMZqXLbqOjb9fbkRN3VDYmI0/togif.gif" target="_blank" class="attachment"><svg class="icon_ecf39b icon__13ad2" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" d="M10.57 4.01a6.97 6.97 0 0 1 9.86 0l.54.55a6.99 6.99 0 0 1 0 9.88l-7.26 7.27a1 1 0 0 1-1.42-1.42l7.27-7.26a4.99 4.99 0 0 0 0-7.06L19 5.43a4.97 4.97 0 0 0-7.02 0l-8.02 8.02a3.24 3.24 0 1 0 4.58 4.58l6.24-6.24a1.12 1.12 0 0 0-1.58-1.58l-3.5 3.5a1 1 0 0 1-1.42-1.42l3.5-3.5a3.12 3.12 0 1 1 4.42 4.42l-6.24 6.24a5.24 5.24 0 0 1-7.42-7.42l8.02-8.02Z" class=""></path></svg><span> attachments</span></a></p><img src="https://uploads.meower.org/attachments/oMZqXLbqOjb9fbkRN3VDYmI0/togif.gif" onclick="openImage('https://uploads.meower.org/attachments/oMZqXLbqOjb9fbkRN3VDYmI0/togif.gif')" alt="togif.gif" class="embed"></div></div>
+                    </div><span class="user-header"><span id="username">Eris</span><i class="date">04/04/24, 10:49 pm</i></span><p><a href="${UPLOADS_URL}/attachments/oMZqXLbqOjb9fbkRN3VDYmI0/togif.gif" target="_blank" class="attachment"><svg class="icon_ecf39b icon__13ad2" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" d="M10.57 4.01a6.97 6.97 0 0 1 9.86 0l.54.55a6.99 6.99 0 0 1 0 9.88l-7.26 7.27a1 1 0 0 1-1.42-1.42l7.27-7.26a4.99 4.99 0 0 0 0-7.06L19 5.43a4.97 4.97 0 0 0-7.02 0l-8.02 8.02a3.24 3.24 0 1 0 4.58 4.58l6.24-6.24a1.12 1.12 0 0 0-1.58-1.58l-3.5 3.5a1 1 0 0 1-1.42-1.42l3.5-3.5a3.12 3.12 0 1 1 4.42 4.42l-6.24 6.24a5.24 5.24 0 0 1-7.42-7.42l8.02-8.02Z" class=""></path></svg><span> attachments</span></a></p><img src="${UPLOADS_URL}/attachments/oMZqXLbqOjb9fbkRN3VDYmI0/togif.gif" onclick="openImage('${UPLOADS_URL}/attachments/oMZqXLbqOjb9fbkRN3VDYmI0/togif.gif')" alt="togif.gif" class="embed"></div></div>
             </div>
         <div class="theme-buttons">
             <h3>${lang().appearance_sub.theme}</h3>
@@ -4006,7 +4006,7 @@ function autoresize() {
 
 async function deletePost(postid) {
     try {
-        const response = await fetch(`https://api.meower.org/posts?id=${postid}`, {
+        const response = await fetch(`${API_URL}/posts?id=${postid}`, {
             method: "DELETE",
             headers: {
                 "token": localStorage.getItem("token")
@@ -4113,7 +4113,7 @@ function createChat() {
         openUpdate("Chat nickname too long!");
         return;
     }
-    fetch("https://api.meower.org/chats", {
+    fetch((API_URL + "/chats"), {
         method: "POST",
         headers: {
             token: localStorage.getItem("token"),
@@ -4147,7 +4147,7 @@ function favChat(e, chatId) {
         favoritedChats.push(chatId);
     }
     renderChats();
-    fetch("https://api.meower.org/me/config", {
+    fetch((API_URL + "/me/config"), {
         method: "PATCH",
         headers: {
             token: localStorage.getItem("token"),
@@ -4195,7 +4195,7 @@ function closeChatModal(e, chatId, chatName) {
 
 function closeChat(chatId) {
     closemodal();
-    fetch(`https://api.meower.org/chats/${chatId}`, {
+    fetch(`${API_URL}/chats/${chatId}`, {
         method: "DELETE",
         headers: { token: localStorage.getItem("token") }
     });
@@ -4269,7 +4269,7 @@ function openUsrModal(uId) {
                 <iframe class="profile" src="profile/index.html?u=${uId}"></iframe>
                 `;
                 
-                fetch(`https://api.meower.org/users/${uId}`)
+                fetch(`${API_URL}/users/${uId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.avatar_color !== "!color") {
@@ -4350,7 +4350,7 @@ function reportModal(id) {
 }
 
 function sendReport(id) {
-    fetch(`https://api.meower.org/posts/${id}/report`, {
+    fetch(`${API_URL}/posts/${id}/report`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -4433,7 +4433,7 @@ function openModModal() {
 }
 
 async function loadreports() {
-    fetch("https://api.meower.org/admin/reports?autoget=1&page=1&status=pending", {
+    fetch((API_URL + "/admin/reports?autoget=1&page=1&status=pending"), {
         method: "GET",
         headers: {
             "token": localStorage.getItem("token")
@@ -4543,7 +4543,7 @@ async function loadreports() {
 
                     const rpfp = rprtbx.querySelector('.avatar');
                     if (report.content.avatar) {
-                        rpfp.src = `https://uploads.meower.org/icons/${report.content.avatar}`
+                        rpfp.src = `${UPLOADS_URL}/icons/${report.content.avatar}`
                         rpfp.style = `border: 3px solid #${report.content.avatar_color};background-color:#${report.content.avatar_color};`
                     } else {
                         rpfp.src = `images/avatars/icon_${report.content.pfp_data - 1}.svg`
@@ -4592,7 +4592,7 @@ function modUserModal(user) {
 }
 
 async function loadmoduser(user) {
-    fetch(`https://api.meower.org/admin/users/${user}`, {
+    fetch(`${API_URL}/admin/users/${user}`, {
         method: "GET",
         headers: {
             "token": localStorage.getItem("token")
@@ -4640,7 +4640,7 @@ async function loadmoduser(user) {
 
         const rpfp = document.querySelector('.mod-post .avatar');
         if (data.avatar) {
-            rpfp.src = `https://uploads.meower.org/icons/${data.avatar}`;
+            rpfp.src = `${UPLOADS_URL}/icons/${data.avatar}`;
             rpfp.style.border = `3px solid #${data.avatar_color}`;
             rpfp.style.backgroundColor = `#${data.avatar_color}`;
         } else if (data.pfp_data) {
@@ -4677,7 +4677,7 @@ async function loadmoduser(user) {
             `;
         });
     
-        fetch(`https://api.meower.org/admin/notes/${data.uuid}`, {
+        fetch(`${API_URL}/admin/notes/${data.uuid}`, {
             method: "GET",
             headers: {
                 "token": localStorage.getItem("token")
@@ -4738,7 +4738,7 @@ function modPostModal(postid) {
 }
 
 async function loadmodpost(postid) {
-    fetch(`https://api.meower.org/admin/posts/${postid}`, {
+    fetch(`${API_URL}/admin/posts/${postid}`, {
         method: "GET",
         headers: {
             "token": localStorage.getItem("token")
@@ -4747,7 +4747,7 @@ async function loadmodpost(postid) {
     .then(response => response.json())
     .then(data => {
         if (data) {
-            fetch(`https://api.meower.org/users/${data.u}`)
+            fetch(`${API_URL}/users/${data.u}`)
                 .then(response => response.json())
                 .then(userData => {
                     if (userData) {
@@ -4790,7 +4790,7 @@ async function loadmodpost(postid) {
                         }
                         const rpfp = document.querySelector('.mod-posts .avatar');
                         if (userData.avatar) {
-                            rpfp.src = `https://uploads.meower.org/icons/${userData.avatar}`;
+                            rpfp.src = `${UPLOADS_URL}/icons/${userData.avatar}`;
                             rpfp.style.border = `3px solid #${userData.avatar_color}`;
                             rpfp.style.backgroundColor = `#${userData.avatar_color}`;
                         } else {
@@ -4799,7 +4799,7 @@ async function loadmodpost(postid) {
                             rpfp.classList.add('svg-avatar');
                         }
 
-                        fetch(`https://api.meower.org/admin/notes/${postid}`, {
+                        fetch(`${API_URL}/admin/notes/${postid}`, {
                             method: "GET",
                             headers: {
                                 "token": localStorage.getItem("token")
@@ -4836,7 +4836,7 @@ async function loadmodpost(postid) {
 
 async function modDeletePost(postid) {
     try {
-        const response = await fetch(`https://api.meower.org/admin/posts/${postid}`, {
+        const response = await fetch(`${API_URL}/admin/posts/${postid}`, {
             method: "DELETE",
             headers: {
                 "token": localStorage.getItem("token")
@@ -4856,7 +4856,7 @@ async function modDeletePost(postid) {
 function updateNote(postid) {
     const note = document.getElementById('mod-post-note').value;
     
-    fetch(`https://api.meower.org/admin/notes/${postid}`, {
+    fetch(`${API_URL}/admin/notes/${postid}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -4877,7 +4877,7 @@ function updateNote(postid) {
 function sendAlert(userid) {
     const note = document.getElementById('mod-user-alert').value;
     
-    fetch(`https://api.meower.org/admin/users/${userid}/alert`, {
+    fetch(`${API_URL}/admin/users/${userid}/alert`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -4897,7 +4897,7 @@ function sendAlert(userid) {
 
 function closeReport(postid, action) {
     if (action) {
-        fetch(`https://api.meower.org/admin/reports/${postid}`, {
+        fetch(`${API_URL}/admin/reports/${postid}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -4914,7 +4914,7 @@ function closeReport(postid, action) {
             console.error("Error updating report:", error);
         });
     } else {
-        fetch(`https://api.meower.org/admin/reports/${postid}`, {
+        fetch(`${API_URL}/admin/reports/${postid}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -5252,7 +5252,7 @@ function modgotousr() {
 
 async function loadstats() {
     try {
-        const response = await fetch('https://api.meower.org/statistics');
+        const response = await fetch((API_URL + '/statistics'));
         const data = await response.json();
 
         const formattedData = {
@@ -5400,7 +5400,7 @@ function addAttachment(file) {
         
         document.getElementById('images-container').appendChild(element);
 
-        xhr.open("POST", "https://uploads.meower.org/attachments");
+        xhr.open("POST", (UPLOADS_URL + "/attachments"));
         xhr.setRequestHeader("Authorization", localStorage.getItem("token"));
         xhr.upload.onprogress = (ev) => {
             const percentage = `${Number((ev.loaded / ev.total) * 100).toFixed(2)}%`;
@@ -5598,7 +5598,7 @@ function blockUser(user) {
         blockedUsers[user] = true;
     }
     
-    fetch(`https://api.meower.org/users/${user}/relationship`, {
+    fetch(`${API_URL}/users/${user}/relationship`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
@@ -5759,7 +5759,7 @@ function agreementModal() {
             const mdbt = mdl.querySelector('.modal-bottom');
             if (mdbt) {
                 mdbt.innerHTML = `<div style="margin-bottom: var(--margin);"><div id="hcaptcha-widget"></div></div>`;
-                fetch("https://api.meower.org/").then(resp => resp.json().then(resp => {
+                fetch((API_URL + "/")).then(resp => resp.json().then(resp => {
                     if (resp.captcha.enabled) {
                         hcaptcha.render("hcaptcha-widget", {
                             sitekey: resp.captcha.sitekey,
@@ -5796,7 +5796,7 @@ function errorModal(header, text) {
 }
 
 function changePassword() {
-    fetch("https://api.meower.org/me/password", {
+    fetch((API_URL + "/me/password"), {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
@@ -5817,7 +5817,7 @@ function changePassword() {
 function deleteTokens() {
     closemodal();
     launchscreen();
-    fetch("https://api.meower.org/me/tokens", {
+    fetch((API_URL + "/me/tokens"), {
         method: "DELETE",
         headers: { token: localStorage.getItem("token") },
     }).then(resp => {
@@ -5831,7 +5831,7 @@ function deleteTokens() {
 function deleteAccount(password) {
     closemodal();
     launchscreen();
-    fetch("https://api.meower.org/me", {
+    fetch((API_URL + "/me"), {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",
@@ -6017,7 +6017,7 @@ function transferOwnershipModal(chatId) {
 
 function transferOwnership(chatId) {
     const user = document.getElementById("chat-mem-input").value;
-    fetch(`https://api.meower.org/chats/${chatId}/members/${user}/transfer`, {
+    fetch(`${API_URL}/chats/${chatId}/members/${user}/transfer`, {
         method: "POST",
         headers: {
             token: localStorage.getItem("token"),
@@ -6039,7 +6039,7 @@ function transferOwnership(chatId) {
 
 function addMembertoGC(chatId) {
     const user = document.getElementById("chat-mem-input").value;
-    fetch(`https://api.meower.org/chats/${chatId}/members/${user}`, {
+    fetch(`${API_URL}/chats/${chatId}/members/${user}`, {
         method: "PUT",
         headers: {
             token: localStorage.getItem("token"),
@@ -6061,7 +6061,7 @@ function addMembertoGC(chatId) {
 }
 
 function removeMemberFromGC(chatId, user) {
-    fetch(`https://api.meower.org/chats/${chatId}/members/${user}`, {
+    fetch(`${API_URL}/chats/${chatId}/members/${user}`, {
         method: "DELETE",
         headers: {
             token: localStorage.getItem("token"),
@@ -6088,7 +6088,7 @@ function notify(u, p, location, val) {
         loc = location
     } else {
         if (!chatCache[location]) {
-            fetch(`https://api.meower.org/chats/${location}`, {
+            fetch(`${API_URL}/chats/${location}`, {
                 headers: {token: localStorage.getItem("token")}
             })
             .then(response => {
@@ -6154,10 +6154,10 @@ function notify(u, p, location, val) {
         }
     }
     let pfp
-    fetch(`https://api.meower.org/users/${user}`)
+    fetch(`${API_URL}/users/${user}`)
     .then(response => response.json())
     .then(data => {
-        pfp = `https://uploads.meower.org/icons/${data.avatar}`;
+        pfp = `${UPLOADS_URL}/icons/${data.avatar}`;
         if (user !== localStorage.getItem("username")) {
             if (location !== "livechat") {
                 if (location !== "home" || content.includes(`@${localStorage.getItem("username")}`)) {

@@ -3,7 +3,7 @@
 // im bad at naming things ok
 
 let whitelist = [
-    "https://uploads.meower.org/",
+    (UPLOADS_URL + "/"),
     "https://meower.org/",
     "https://http.meower.org/",
     "https://assets.meower.org/",
@@ -51,7 +51,7 @@ function erimd(content,isProfile) {
 
 function meowerEmojis(content, emojis) {
     for (const emoji of emojis) {
-        content = content.replaceAll(`&lt;:${emoji._id}&gt;`, `<img src="https://uploads.meower.org/emojis/${emoji._id}" alt="${escapeHTML(emoji.name)}" title="${escapeHTML(emoji.name)}" class="emoji">`);
+        content = content.replaceAll(`&lt;:${emoji._id}&gt;`, `<img src="${UPLOADS_URL}/emojis/${emoji._id}" alt="${escapeHTML(emoji.name)}" title="${escapeHTML(emoji.name)}" class="emoji">`);
     }
     return content;
 }
@@ -192,9 +192,9 @@ function buttonbadges(content) {
 function attach(attachment) {
     let link;
     if (attachment.filename) {
-        link = `https://uploads.meower.org/attachments/${attachment.id}/${attachment.filename}`;
+        link = `${UPLOADS_URL}/attachments/${attachment.id}/${attachment.filename}`;
     } else {
-        link = `https://uploads.meower.org/attachments/${attachment.id}`;
+        link = `${UPLOADS_URL}/attachments/${attachment.id}`;
     }
     if (link) {
         const baseURL = link.split('?')[0];
