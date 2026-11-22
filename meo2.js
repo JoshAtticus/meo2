@@ -435,15 +435,6 @@ function meoDecorateChat(chatId) {
             `<input type="button" class="settings-button button meo-pins-btn" value="Pinned" onclick="meoShowPins('${chatId}')">`);
     }
 
-    // Stickers button next to the emoji button
-    if (meoIsGroup(chat) && container && !container.querySelector(".meo-sticker-btn")) {
-        const emojiBtn = container.querySelector("#emojis");
-        if (emojiBtn) {
-            emojiBtn.insertAdjacentHTML("afterend",
-                `<button class="message-tool button meo-sticker-btn" onclick="meoStickerPicker('${chatId}')" aria-label="Stickers" title="Stickers">${MEO_ICONS.sticker}</button>`);
-        }
-    }
-
     // DM requests
     const req = chat.type === 1 ? chat.dm_request : null;
     const other = (chat.members || []).find(m => m !== meoUser());
@@ -556,6 +547,39 @@ async function meoShowPins(chatId) {
     } catch (e) {
         openUpdate(meoEsc(e.message));
     }
+}
+
+// Stickers live in the emoji picker, in each chat's section, and can be
+// sent anywhere you can post (home, group chats, DMs).
+function meoAppendStickers(section, chat) {
+    const stickers = chat.stickers || [];
+    if (!stickers.length || meoEmojiTarget) return;
+    const header = document.createElement("div");
+    header.className = "emojiheader meo-sticker-header";
+    header.innerHTML = "<h4>Stickers</h4>";
+    section.appendChild(header);
+    for (const s of stickers) {
+        const btn = document.createElement("button");
+        btn.className = "emojibutton meo-sticker-pick";
+        btn.title = s.name;
+        btn.onclick = () => meoSendStickerHere(s._id);
+        const img = document.createElement("img");
+        img.src = `${UPLOADS_URL}/stickers/${s._id}`;
+        img.alt = s.name;
+        btn.appendChild(img);
+        section.appendChild(btn);
+    }
+}
+
+async function meoSendStickerHere(stickerId) {
+    if (typeof closepicker === "function") closepicker();
+    closemodal();
+    const target = page === "home" ? "/home" : chatCache[page] ? `/posts/${page}` : null;
+    if (!target) {
+        openUpdate("Open a chat or Home to send stickers.");
+        return;
+    }
+    await meoTry(() => meoApi(target, "POST", {content: "", stickers: [stickerId]}));
 }
 
 function meoStickerPicker(chatId) {

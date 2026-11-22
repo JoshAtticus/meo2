@@ -58,7 +58,7 @@ function loadpicker() {
     // Custom emojis from chats
     for (const chat of Object.values(chatCache)) {
         const customEmojis = chat.emojis;
-        if (!customEmojis.length) continue;
+        if (!customEmojis.length && !(chat.stickers || []).length) continue;
 
         const sidebarButton = document.createElement("button");
         sidebarButton.classList.add("emojibuttonside");
@@ -129,6 +129,7 @@ function loadpicker() {
             addButton.appendChild(img);
             section.appendChild(addButton);
         }
+        if (typeof meoAppendStickers === "function") meoAppendStickers(section, chat);
         document.querySelector(".emojicont").appendChild(section);
     }
 
@@ -350,7 +351,7 @@ function emojimodal() {
             let ag = 1;
             for (const chat of Object.values(chatCache)) {
                 const customEmojis = chat.emojis;
-                if (!customEmojis.length) continue;
+                if (!customEmojis.length && !(chat.stickers || []).length) continue;
 
                 const sidebarButton = document.createElement("button");
                 sidebarButton.classList.add("emojibuttonside-mobile");
@@ -424,6 +425,7 @@ function emojimodal() {
                     addButton.appendChild(img);
                     section.appendChild(addButton);
                 }
+                if (typeof meoAppendStickers === "function") meoAppendStickers(section, chat);
                 mdlt.querySelector(".emojicont-mobile").appendChild(section);
                 ag = 0;
             }
