@@ -808,8 +808,10 @@ chatSettings = async function (chatId) {
             <h2 id="nickname" class="gcn" onclick="copy('${meourl}?gc=${chatId}')">${escapeHTML(data.nickname)}</h2><i class="subtitle">${chatId}</i>
         </div>
         <hr class="mdl-hr">
-        ${can("change_icon") ? `<h3>Chat Photo</h3><input type="file" id="chat-photo" accept="image/png,image/jpeg,image/webp,image/gif">` : ""}
-        ${can("delete_icon") && data.icon ? `<button class="member button" onclick="meoRemoveIcon('${chatId}')">Remove photo</button>` : ""}
+        ${can("change_icon") || (can("delete_icon") && data.icon) ? `<h3>Chat Photo</h3><div class="meo-photo-row">` : ""}
+        ${can("change_icon") ? `<label class="meo-file-btn">Choose photo<input type="file" id="chat-photo" accept="image/png,image/jpeg,image/webp,image/gif" onchange="this.parentElement.firstChild.textContent = this.files[0] ? this.files[0].name : 'Choose photo'"></label>` : ""}
+        ${can("delete_icon") && data.icon ? `<button class="meo-file-btn" onclick="meoRemoveIcon('${chatId}')">Remove photo</button>` : ""}
+        ${can("change_icon") || (can("delete_icon") && data.icon) ? `</div>` : ""}
         ${can("change_color") ? `<h3>Chat Color</h3><div class="color-outer"><input id="chat-color" type="color" value="#${data.icon_color || "000000"}"></div>` : ""}
         ${can("change_name") ? `<h3>${lang().action.nick}</h3><div class="nick"><input id="chat-nick-input" class="setting-input" placeholder="${escapeHTML(data.nickname)}" minlength="1" maxlength="32"></div>` : ""}
         ${can("change_settings") || can("toggle_invites") ? `<h3>Settings</h3>` : ""}

@@ -284,3 +284,81 @@
     height: 100%;
     object-fit: contain;
 }
+
+/* Chat settings tidy-up */
+.meo-photo-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.meo-file-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 140px;
+    height: 40px;
+    padding: 0 16px;
+    margin: 0;
+    border: none;
+    border-radius: var(--button-radius, 10px);
+    background: var(--accent-color);
+    color: var(--color);
+    font: inherit;
+    font-size: 0.9em;
+    cursor: pointer;
+    box-sizing: border-box;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.meo-file-btn:hover {
+    background: var(--hov-accent-color);
+}
+.meo-file-btn input[type="file"] {
+    display: none;
+}
+#chat-color {
+    width: 56px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    cursor: pointer;
+}
+/* emojis and stickers as a compact grid of tiles */
+.settings .emoji-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 6px;
+    max-height: none;
+    overflow: visible;
+    margin-top: 6px;
+}
+.settings .emoji-list .member-in {
+    margin: 0;
+    padding: 6px 10px;
+    min-height: 0;
+}
+.settings .emoji-list .emoji-option-im {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+/* roles */
+.meo-role-create {
+    align-items: stretch;
+}
+.meo-role-create > * {
+    height: 40px;
+    margin: 0;
+    box-sizing: border-box;
+}
+#meo-roles {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+#meo-roles .member-in {
+    margin: 0;
+}
