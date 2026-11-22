@@ -362,3 +362,43 @@
 #meo-roles .member-in {
     margin: 0;
 }
+
+/* Friends page: field and button the same height, compact spaced rows */
+.meo-add-friend {
+    align-items: stretch;
+}
+.meo-add-friend > * {
+    height: 42px;
+    margin: 0;
+    box-sizing: border-box;
+}
+.meo-add-friend button {
+    flex-shrink: 0;
+    padding: 0 18px;
+}
+.settings .member-in:has(.meo-friend-btns) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 0;
+    padding: 8px 8px 8px 14px;
+    margin: 0 0 6px;
+}
+.meo-friend-btns {
+    display: flex;
+    gap: 6px;
+}
+.meo-friend-btns button {
+    margin: 0;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 8px;
+    background: color-mix(in srgb, currentColor 14%, transparent);
+}
+.meo-friend-btns button:hover {
+    background: color-mix(in srgb, currentColor 24%, transparent);
+}
+.meo-friend-btns button.green {
+    background: #2a8a4a;
+}
