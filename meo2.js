@@ -858,7 +858,7 @@ chatSettings = async function (chatId) {
         ${can("toggle_invites") ? `<label class="meo-check"><input type="checkbox" id="meo-invites" ${data.invites_enabled !== false ? "checked" : ""}> Allow invites</label>` : ""}
         ${can("change_settings") ? `
             <label class="meo-check"><input type="checkbox" id="meo-sharing" ${data.allow_sharing !== false ? "checked" : ""}> Allow Sharing Messages</label>
-            ${data.allow_sharing !== false ? `<label class="meo-check"><input type="checkbox" id="meo-share-ctx" ${data.share_context !== false ? "checked" : ""}> Also Share Message Context</label>` : ""}` : ""}
+            ${data.allow_sharing !== false ? `<label class="meo-check"><input type="checkbox" id="meo-share-ctx" ${data.share_context === true ? "checked" : ""}> Also Share Message Context</label>` : ""}` : ""}
         ${canEditGeneral ? `<div class="settings-buttons-row"><button onclick="meoSaveChat('${chatId}')" id="chat-update" class="settings-button-in green">${lang().chats.update}</button></div>` : ""}
         <hr>
         <h3>${lang().chats.emojis}</h3>
@@ -899,7 +899,7 @@ async function meoSaveChat(chatId) {
         if (d && d.checked !== !!data.announce_deleter) body.announce_deleter = d.checked;
         if (i && i.checked !== (data.invites_enabled !== false)) body.invites_enabled = i.checked;
         if (sh && sh.checked !== (data.allow_sharing !== false)) body.allow_sharing = sh.checked;
-        if (sc && sc.checked !== (data.share_context !== false)) body.share_context = sc.checked;
+        if (sc && sc.checked !== (data.share_context === true)) body.share_context = sc.checked;
         if (!Object.keys(body).length) { btn.disabled = false; return; }
         const updated = await meoApi(`/chats/${chatId}`, "PATCH", body);
         Object.assign(chatCache[chatId], updated);
