@@ -554,10 +554,13 @@ async function meoShowPins(chatId) {
 function meoAppendStickers(section, chat) {
     const stickers = chat.stickers || [];
     if (!stickers.length || meoEmojiTarget) return;
+    // own header and grid, spanning the section (meo pins .emojiheader on mobile)
     const header = document.createElement("div");
-    header.className = "emojiheader meo-sticker-header";
-    header.innerHTML = "<h4>Stickers</h4>";
+    header.className = "meo-sticker-header";
+    header.textContent = "Stickers";
     section.appendChild(header);
+    const grid = document.createElement("div");
+    grid.className = "meo-sticker-grid";
     for (const s of stickers) {
         const btn = document.createElement("button");
         btn.className = "emojibutton meo-sticker-pick";
@@ -567,8 +570,9 @@ function meoAppendStickers(section, chat) {
         img.src = `${UPLOADS_URL}/stickers/${s._id}`;
         img.alt = s.name;
         btn.appendChild(img);
-        section.appendChild(btn);
+        grid.appendChild(btn);
     }
+    section.appendChild(grid);
 }
 
 async function meoSendStickerHere(stickerId) {
