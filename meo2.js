@@ -239,8 +239,7 @@ function meoCanJoinReaction(post) {
 // Share button: group chats can turn it off or require share_posts
 function meoCanShare(post) {
     const chat = chatCache[post.post_origin];
-    return !meoIsGroup(chat) ||
-        (chat.allow_sharing !== false && meoHas(chat, meoUser(), "share_posts"));
+    return !meoIsGroup(chat) || meoHas(chat, meoUser(), "share_posts");
 }
 
 function meoRenderReactions(post) {
@@ -857,8 +856,10 @@ chatSettings = async function (chatId) {
             <label class="meo-check"><input type="checkbox" id="meo-deleter" ${data.announce_deleter ? "checked" : ""}> Show who deleted them</label>` : ""}
         ${can("toggle_invites") ? `<label class="meo-check"><input type="checkbox" id="meo-invites" ${data.invites_enabled !== false ? "checked" : ""}> Allow invites</label>` : ""}
         ${can("change_settings") ? `
-            <label class="meo-check"><input type="checkbox" id="meo-sharing" ${data.allow_sharing !== false ? "checked" : ""}> Allow Sharing Messages</label>
-            ${data.allow_sharing !== false ? `<label class="meo-check"><input type="checkbox" id="meo-share-ctx" ${data.share_context === true ? "checked" : ""}> Also Share Message Context</label>` : ""}` : ""}
+            <label class="meo-check"><input type="checkbox" id="meo-sharing" ${data.allow_sharing !== false ? "checked" : ""}> Allow Sharing with Non-Members</label>
+            <p class="meo-hint subsubheader">Anyone with a share link can read messages in this chat, even if they aren't a member. This setting doesn't affect chat members.</p>
+            ${data.allow_sharing !== false ? `<label class="meo-check"><input type="checkbox" id="meo-share-ctx" ${data.share_context === true ? "checked" : ""}> Also Share Message Context</label>
+            <p class="meo-hint subsubheader">When this is enabled, anyone with a share link can see the surrounding messages.</p>` : ""}` : ""}
         ${canEditGeneral ? `<div class="settings-buttons-row"><button onclick="meoSaveChat('${chatId}')" id="chat-update" class="settings-button-in green">${lang().chats.update}</button></div>` : ""}
         <hr>
         <h3>${lang().chats.emojis}</h3>
