@@ -8,7 +8,9 @@ async function loadsharedpost() {
         return;
     }
 
-    const api = `${API_URL}/posts?id=${id}`;
+    const s = urlParams.get('s');
+    const st = urlParams.get('s');
+const api = `${API_URL}/posts?id=${id}${st ? `&s=${encodeURIComponent(st)}` : ''}` + (s ? `&s=${encodeURIComponent(s)}` : '');
     console.debug(api);
     try {
         const response = await fetch(api, { headers: { token: localStorage.getItem("token") } });

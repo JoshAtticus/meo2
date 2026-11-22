@@ -427,6 +427,31 @@ loadpost = function (p) {
 };
 
 // Extra actions in the post menu (mobile and "more")
+// Fetch a signed share token for chat posts so the share link works for
+// non-members (the share page forwards it as ?s=)
+async function meoShareUrl(postId) {
+    let url = `${meourl}/share?id=${postId}`;
+    // /share returns null for public (home) posts, a token for group-chat posts
+    try {
+        const {token} = await meoApi(`/posts/${postId}/share`);
+        if (token) url += `&s=${encodeURIComponent(token)}`;
+    } catch {}
+    return url;
+}
+
+const meoOrigMdlshare = mdlshare;
+mdlshare = async function (event) {
+    const postId = event.target.closest('.modal').id;
+    copy(await meoShareUrl(postId), "Copied link to message!");
+};
+
+const meoOrigSharepost = sharepost;
+sharepost = async function (e) {
+    e = e || window.event;
+    const postId = e.target.closest('.post').id;
+    window.open(await meoShareUrl(postId), '_blank');
+};
+
 const meoOrigOpenModal = openModal;
 openModal = function (postId) {
     meoOrigOpenModal(postId);
