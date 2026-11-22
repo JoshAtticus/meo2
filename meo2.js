@@ -9,6 +9,9 @@ const MEO_ERRORS = {
     missingPermission: "You don't have permission to do that.",
     insufficientRank: "You can't do that to someone ranked at or above you.",
     permissionAboveRoleTier: "That permission is above this role's tier.",
+    notCosmetic: "Only cosmetic roles can override the display.",
+    tierLocked: "The Administrator role's tier can't change.",
+    sharingDisabled: "Turn on message sharing first.",
     invitesDisabled: "Invites are turned off in this chat.",
     nameTaken: "That name is already used in this chat.",
     tooManyReactions: "This post has too many reactions.",
@@ -74,7 +77,10 @@ const MEO_PERMS = [
     ["delete_icon", 0, "Remove chat icon"],
     ["pin_messages", 0, "Pin messages"],
     ["unpin_messages", 0, "Unpin messages"],
-    ["add_reactions", 0, "Add reactions"],
+    ["add_reactions", 0, "Add new reactions"],
+    ["share_posts", 0, "Share messages"],
+    ["react", 0, "React to existing reactions"],
+    ["edit_messages", 0, "Edit own messages"],
     ["delete_others_messages", 1, "Delete others' messages"],
     ["remove_members", 1, "Remove members"],
     ["ban_members", 2, "Ban members"],
@@ -92,9 +98,10 @@ const meoRoles = chat => Object.fromEntries((chat.roles || []).map(r => [r._id, 
 
 function meoRoleEffective(chat, role) {
     if (role.tier >= 4) return new Set(Object.keys(MEO_PERM_TIER));
+    if (role.tier < 0) return new Set(); // cosmetic roles grant nothing
     const eff = new Set();
     for (const other of chat.roles || []) {
-        if (other.tier < role.tier) {
+        if (other.tier >= 0 && other.tier < role.tier) {
             for (const [k, v] of Object.entries(other.permissions || {})) if (v === true) eff.add(k);
         }
     }
@@ -138,16 +145,21 @@ function meoCanAssign(chat, actor, target, role) {
     return meoCanManageRole(chat, actor, role);
 }
 
-// The member's highest-tier role (ties: most recently given)
+// The member's displayed role: the most recently assigned role with
+// display_override wins; otherwise the highest-tier role (ties: most
+// recently given). needColor only considers roles that have colours.
 function meoTopRole(chat, username, needColor = false) {
     const roles = meoRoles(chat);
-    let best = null;
+    let best = null, override = null;
     for (const id of chat.member_roles?.[username] || []) {
         const r = roles[id];
-        if (!r || (needColor && !(r.colors || []).length)) continue;
-        if (!best || r.tier >= best.tier) best = r;
+        if (!r) continue;
+        if (!needColor || (r.colors || []).length) {
+            if (!best || r.tier >= best.tier) best = r;
+        }
+        if (r.display_override) override = r;
     }
-    return best;
+    return override || best;
 }
 
 function meoColorStyle(colors) {
@@ -216,6 +228,21 @@ function meoCanReact(post) {
         (!meoIsGroup(chat) || meoHas(chat, meoUser(), "add_reactions"));
 }
 
+// Joining an emoji already on the post needs `react`; removing your own
+// reaction is always allowed (checked at render time).
+function meoCanJoinReaction(post) {
+    const chat = chatCache[post.post_origin];
+    return post.u !== "Server" && post.post_origin !== "livechat" &&
+        (!meoIsGroup(chat) || meoHas(chat, meoUser(), "react"));
+}
+
+// Share button: group chats can turn it off or require share_posts
+function meoCanShare(post) {
+    const chat = chatCache[post.post_origin];
+    return !meoIsGroup(chat) ||
+        (chat.allow_sharing !== false && meoHas(chat, meoUser(), "share_posts"));
+}
+
 function meoRenderReactions(post) {
     const el = document.getElementById(post._id);
     if (!el) return;
@@ -230,9 +257,9 @@ function meoRenderReactions(post) {
         row.className = "meo-reactions";
         wrapper.appendChild(row);
     }
-    const canReact = meoCanReact(post);
+    const canJoin = meoCanJoinReaction(post);
     row.innerHTML = post.reactions.map(r => `
-        <button class="meo-reaction${r.user_reacted ? " mine" : ""}" ${!canReact && !r.user_reacted ? "disabled" : ""}
+        <button class="meo-reaction${r.user_reacted ? " mine" : ""}" ${!canJoin && !r.user_reacted ? "disabled title=\"You can't react in this chat\"" : ""}
             onclick="meoToggleReaction('${post._id}', '${meoEsc(r.emoji)}')"
             onmouseenter="meoReactors(this, '${post._id}', '${meoEsc(r.emoji)}')">
             ${meoReactionHtml(r.emoji)}<span>${r.count}</span>
@@ -413,6 +440,12 @@ openModal = function (postId) {
     if (meoCanReact(post) && post.post_origin !== "inbox") add("React", `meoReact('${postId}')`, MEO_ICONS.react);
     if (meoCanPin(post)) add(post.pinned ? "Unpin" : "Pin", `meoPin('${postId}')`, MEO_ICONS.pin);
     if (meoCanDeleteOthers(post)) add("Delete", `meoDeleteOthers('${postId}')`, MEO_ICONS.trash);
+    // gate the built-in share/edit buttons on the new permissions
+    const chat = chatCache[post.post_origin];
+    if (!meoCanShare(post))
+        top.querySelectorAll('.modal-button[onclick^="mdlshare"]').forEach(b => b.remove());
+    if (meoIsGroup(chat) && !meoHas(chat, meoUser(), "edit_messages"))
+        top.querySelectorAll('.modal-button[onclick^="editPost"]').forEach(b => b.remove());
 };
 
 
@@ -823,6 +856,9 @@ chatSettings = async function (chatId) {
             <label class="meo-check"><input type="checkbox" id="meo-announce" ${data.announce_deletes ? "checked" : ""}> Announce deleted messages</label>
             <label class="meo-check"><input type="checkbox" id="meo-deleter" ${data.announce_deleter ? "checked" : ""}> Show who deleted them</label>` : ""}
         ${can("toggle_invites") ? `<label class="meo-check"><input type="checkbox" id="meo-invites" ${data.invites_enabled !== false ? "checked" : ""}> Allow invites</label>` : ""}
+        ${can("change_settings") ? `
+            <label class="meo-check"><input type="checkbox" id="meo-sharing" ${data.allow_sharing !== false ? "checked" : ""}> Allow Sharing Messages</label>
+            ${data.allow_sharing !== false ? `<label class="meo-check"><input type="checkbox" id="meo-share-ctx" ${data.share_context !== false ? "checked" : ""}> Also Share Message Context</label>` : ""}` : ""}
         ${canEditGeneral ? `<div class="settings-buttons-row"><button onclick="meoSaveChat('${chatId}')" id="chat-update" class="settings-button-in green">${lang().chats.update}</button></div>` : ""}
         <hr>
         <h3>${lang().chats.emojis}</h3>
@@ -858,9 +894,12 @@ async function meoSaveChat(chatId) {
         const nick = document.getElementById("chat-nick-input")?.value.trim();
         if (nick && nick !== data.nickname) body.nickname = nick;
         const a = document.getElementById("meo-announce"), d = document.getElementById("meo-deleter"), i = document.getElementById("meo-invites");
+        const sh = document.getElementById("meo-sharing"), sc = document.getElementById("meo-share-ctx");
         if (a && a.checked !== !!data.announce_deletes) body.announce_deletes = a.checked;
         if (d && d.checked !== !!data.announce_deleter) body.announce_deleter = d.checked;
         if (i && i.checked !== (data.invites_enabled !== false)) body.invites_enabled = i.checked;
+        if (sh && sh.checked !== (data.allow_sharing !== false)) body.allow_sharing = sh.checked;
+        if (sc && sc.checked !== (data.share_context !== false)) body.share_context = sc.checked;
         if (!Object.keys(body).length) { btn.disabled = false; return; }
         const updated = await meoApi(`/chats/${chatId}`, "PATCH", body);
         Object.assign(chatCache[chatId], updated);
@@ -952,18 +991,18 @@ function meoRenderRoles(chatId) {
     const chat = chatCache[chatId];
     const me = meoUser();
     const myRank = meoRank(chat, me);
-    const tiers = [0, 1, 2, 3].filter(t => chat.owner === me || myRank >= 4 || t < myRank);
+    const tiers = [-1, 0, 1, 2, 3].filter(t => t === -1 || chat.owner === me || myRank >= 4 || t < myRank);
     const count = r => Object.values(chat.member_roles || {}).filter(l => l.includes(r._id)).length;
     box.innerHTML = `
         ${meoHas(chat, me, "create_roles") && tiers.length ? `
         <div class="meo-role-create">
             <input id="meo-role-name" class="setting-input" placeholder="Role name" maxlength="32">
-            <select id="meo-role-tier" class="setting-input">${tiers.map(t => `<option value="${t}">Tier ${t}</option>`).join("")}</select>
+            <select id="meo-role-tier" class="setting-input">${tiers.map(t => `<option value="${t}">${t === -1 ? "Cosmetic" : `Tier ${t}`}</option>`).join("")}</select>
             <button class="settings-button-in green" onclick="meoCreateRole('${chatId}')">Create</button>
         </div>` : ""}
         ${meoSortedRoles(chat).map(r => `
         <div class="member-in meo-role-row" onclick="meoEditRole('${chatId}', '${r._id}')">
-            <span><b style="${meoColorStyle(r.colors)}">${meoEsc(r.name)}</b> <span class="subsubheader">Tier ${r.tier} · ${count(r)} member${count(r) === 1 ? "" : "s"}</span></span>
+            <span><b style="${meoColorStyle(r.colors)}">${meoEsc(r.name)}</b> <span class="subsubheader">${r.tier === -1 ? "Cosmetic" : `Tier ${r.tier}`} · ${count(r)} member${count(r) === 1 ? "" : "s"}</span></span>
             <div class="mem-ops">
                 ${meoHas(chat, me, "delete_roles") && meoCanManageRole(chat, me, r) && !["default", "administrator"].includes(r._id)
                     ? `<div class="mem-op tooltip left" title="Delete" data-tooltip="Delete" onclick="event.stopPropagation(); meoDeleteRole('${chatId}', '${r._id}')">${MEO_SVG_X}</div>` : ""}
@@ -1006,10 +1045,18 @@ function meoEditRole(chatId, roleId) {
     const canManage = meoHas(chat, me, "modify_roles") && meoCanManageRole(chat, me, role);
     const canColor = role._id === "administrator" ? chat.owner === me : canManage;
     const colors = role.colors || [];
-    const inherits = perm => (chat.roles || []).some(o => o.tier < role.tier && o.permissions?.[perm] === true);
+    const inherits = perm => (chat.roles || []).some(o => o.tier >= 0 && o.tier < role.tier && o.permissions?.[perm] === true);
+    const myRank = meoRank(chat, me);
+    const settable = [-1, 0, 1, 2, 3, 4].filter(t => t === -1 || chat.owner === me || t < myRank);
+    const tierLabel = t => t === -1 ? "Cosmetic" : `Tier ${t}`;
     let perms = "";
     if (role._id === "administrator") {
         perms = `<p>Has every permission.</p>`;
+    } else if (role.tier === -1) {
+        perms = `<p>Cosmetic roles have no permissions.</p>
+            <label class="meo-check"><input type="checkbox" ${role.display_override ? "checked" : ""} ${canManage ? "" : "disabled"}
+                onchange="meoTry(() => meoPatchRole('${chatId}', '${roleId}', {display_override: this.checked}), () => meoEditRole('${chatId}', '${roleId}'))">
+                Show this role's name and colour instead of other roles</label>`;
     } else {
         for (let t = 0; t <= role.tier; t++) {
             const rows = MEO_PERMS.filter(([, tier]) => tier === t);
@@ -1026,6 +1073,11 @@ function meoEditRole(chatId, roleId) {
     meoModal(meoEsc(role.name), `
         <div class="meo-role-editor">
             ${canManage ? `<input id="meo-role-rename" class="mdl-inp" value="${meoEsc(role.name)}" maxlength="32" onchange="meoRenameRole('${chatId}', '${roleId}', this.value)">` : ""}
+            ${role._id === "administrator"
+                ? `<span class="subsubheader">Tier 4</span>`
+                : `<select class="mdl-inp" ${canManage ? "" : "disabled"} onchange="meoTry(() => meoPatchRole('${chatId}', '${roleId}', {tier: Number(this.value)}), () => meoEditRole('${chatId}', '${roleId}'))">
+                    ${settable.map(t => `<option value="${t}" ${t === role.tier ? "selected" : ""}>${tierLabel(t)}</option>`).join("")}
+                   </select>`}
             <div class="meo-role-colors">
                 <b>Colour</b>
                 <input type="color" id="meo-color-1" value="#${colors[0] || "765dee"}" ${canColor ? "" : "disabled"} onchange="meoSaveRoleColors('${chatId}', '${roleId}')">
