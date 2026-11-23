@@ -761,7 +761,8 @@ function loadpost(p) {
 
     const pstinf = document.createElement("span");
     pstinf.classList.add("user-header")
-    pstinf.innerHTML = `<span id='username' onclick='openUsrModal("${user}")' data-user-title='${user}'>${user}</span>`;
+    const postDn = p.author && p.author.display_name ? p.author.display_name : "";
+    pstinf.innerHTML = `<span id='username' onclick='openUsrModal("${user}")' data-user-title='${user}'>${escapeHTML(postDn || user)}${postDn ? ` <span class="author-username" style="opacity:.55;font-weight:normal;">@${escapeHTML(user)}</span>` : ""}</span>`;
 
     if (bridged || p.u == "Webhooks") {
         const bridged = document.createElement("bridge");
