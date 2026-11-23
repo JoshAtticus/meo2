@@ -696,6 +696,11 @@ function loadpost(p) {
         }
     }
     
+    const inboxCategoryLabels = {friends:"Friends",chats:"Group chats",security:"Security",moderation:"Moderation",announcement:"Announcement",account:"Account"};
+    if (p.post_origin === "inbox" && p.category && inboxCategoryLabels[p.category]) {
+        user = inboxLabels[p.category];
+    }
+
     const postContainer = document.createElement("div");
     postContainer.classList.add("post");
     postContainer.setAttribute("tabindex", "0");
